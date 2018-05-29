@@ -25,3 +25,7 @@ libraryDependencies += "com.github.fsanaulla" %% "chronicler-macros" % influxVer
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % Test
 
 Revolver.settings
+
+parallelExecution := false
+
+
