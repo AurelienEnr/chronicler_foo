@@ -5,8 +5,8 @@ import com.github.fsanaulla.core.model._
 import jawn.ast.JArray
 import org.scalatest.{BeforeAndAfterAll, FeatureSpec, GivenWhenThen, Matchers}
 
-import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 class TestFooWithMacro extends FeatureSpec with GivenWhenThen with Matchers with BeforeAndAfterAll with Logging {
 
@@ -34,7 +34,7 @@ class TestFooWithMacro extends FeatureSpec with GivenWhenThen with Matchers with
 
       When("object")
       val p = FooWithMacro(product = this.getClass.getSimpleName, qty = -1, time = 10000000L)
-      val s: String = FooWithMacro.writer.write(p)
+      val s: String = FooWithMacro.format.write(p)
 
       // todo: I have no idea why there is no log here...
       println(s)

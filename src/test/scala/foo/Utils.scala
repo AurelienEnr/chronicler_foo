@@ -6,19 +6,16 @@ import org.json4s._
 import org.json4s.native.JsonMethods.parse
 import org.scalatest.{FeatureSpec, GivenWhenThen}
 
-import scala.concurrent.duration.{Duration, _}
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.sys.process._
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 
 object Utils extends FeatureSpec with GivenWhenThen with Logging {
 
-  val defaultDuration = 10 seconds
-
-  def createDB(influx: InfluxAsyncHttpClient, dbName: String, waitingTime: Duration = defaultDuration): Unit = {
-    val createDbResult: Future[Result] = influx.createDatabase(dbName)
-    Try(Await.result(createDbResult, waitingTime)) match {
+  def createDB(influx: InfluxAsyncHttpClient,
+               dbName: String)(implicit ex: ExecutionContext): Unit = {
+    influx.createDatabase(dbName) onComplete {
       case Success(s) =>
         log.warn(s.toString)
         assert(s.isSuccess)
@@ -42,9 +39,9 @@ object Utils extends FeatureSpec with GivenWhenThen with Logging {
     assert(subResults("values").asInstanceOf[Seq[Seq[String]]].exists(l => l.contains(dbName)))
   }
 
-  def clean(influx: InfluxAsyncHttpClient, dbName: String, waitingTime: Duration = defaultDuration): Unit = {
-    val clean = influx.database(dbName).readJs(s"DROP SERIES FROM /.*/")
-    Try(Await.result(clean, waitingTime)) match {
+  def clean(influx: InfluxAsyncHttpClient,
+            dbName: String)(implicit ex: ExecutionContext): Unit = {
+    influx.database(dbName).readJs(s"DROP SERIES FROM /.*/") onComplete {
       case Success(s) =>
         log.warn(s.toString)
         assert(s.isSuccess)
@@ -55,8 +52,8 @@ object Utils extends FeatureSpec with GivenWhenThen with Logging {
     }
   }
 
-  def tryWrite(w: Future[Result], waitingTime: Duration = defaultDuration): Unit = {
-    Try(Await.result(w, waitingTime)) match {
+  def tryWrite(w: Future[Result])(implicit ex: ExecutionContext): Unit = {
+    w onComplete {
       case Success(s) =>
         log.warn(s"code=${s.code}, isSuccess=${s.isSuccess}}")
         assert(s.isSuccess)
@@ -67,8 +64,8 @@ object Utils extends FeatureSpec with GivenWhenThen with Logging {
     }
   }
 
-  def tryRead[T](r: Future[QueryResult[T]], waitingTime: Duration = defaultDuration) = {
-    Try(Await.result(r, waitingTime)) match {
+  def tryRead[T](r: Future[QueryResult[T]])(implicit ex: ExecutionContext) = {
+    r onComplete {
       case Success(s) =>
         log.warn(s"code=${s.code}, isSuccess=${s.isSuccess}, result=${s.queryResult.mkString("\n\t", "\n\t", "\n")}")
         assert(s.isSuccess)
@@ -80,7 +77,9 @@ object Utils extends FeatureSpec with GivenWhenThen with Logging {
   }
 
   var i = 0
-  def databaseIsUp(influx: InfluxAsyncHttpClient, influxAddress: String, dbName: String): Unit = {
+  def databaseIsUp(influx: InfluxAsyncHttpClient,
+                   influxAddress: String,
+                   dbName: String)(implicit ex: ExecutionContext): Unit = {
     i = i + 1
     scenario(s"database is up ($i)") {
 

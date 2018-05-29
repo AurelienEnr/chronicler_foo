@@ -24,5 +24,5 @@ mkdir -p data/influxdb
 influxdb_data_dir=$(pwd)/data/influxdb
 
 # starting an influxdb container with data being in 'data/influxdb' (note: docker needs full path)
-sudo docker run -p 8086:8086 -v $influxdb_data_dir:/var/lib/influxdb influxdb
+sudo docker run -d -p 8086:8086 -v $influxdb_data_dir:/var/lib/influxdb influxdb
 ```
